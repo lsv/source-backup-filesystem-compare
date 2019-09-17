@@ -12,7 +12,7 @@ class File
 
     // Sizes
     public const SOURCE_FILE_IS_SMALLER_THAN_BACKUP = 2;
-    public const SOURCE_FILE_IS_BIGGER_THAN_BACKUP = 3;
+    public const SOURCE_FILE_IS_LARGER_THAN_BACKUP = 3;
     // Timestamps
     public const SOURCE_FILE_IS_OLDER_THAN_BACUP = 4;
     public const SOURCE_FILE_IS_NEWER_THAN_BACKUP = 5;
@@ -137,7 +137,7 @@ class File
         }
 
         if ($this->getBackupSize() < $this->getSourceSize()) {
-            $errors[] = self::SOURCE_FILE_IS_BIGGER_THAN_BACKUP;
+            $errors[] = self::SOURCE_FILE_IS_LARGER_THAN_BACKUP;
         }
 
         if ($this->getBackupSize() > $this->getSourceSize()) {

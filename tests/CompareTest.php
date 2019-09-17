@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Lsv\BackupCompareFilesystemsTests;
 
-use League\Flysystem\Adapter\Local;
+use League\Flysystem\Config;
 use League\Flysystem\Filesystem;
+use League\Flysystem\Memory\MemoryAdapter;
 use Lsv\BackupCompareFilesystems\Compare;
 use Lsv\BackupCompareFilesystems\Model\File;
 use PHPUnit\Framework\TestCase;
@@ -13,53 +14,171 @@ use PHPUnit\Framework\TestCase;
 class CompareTest extends TestCase
 {
     /**
-     * @var Compare
+     * @test
      */
-    private $compare;
+    public function will_compare_backup_file_is_correct(): void
+    {
+        $path = 'temp1/file.txt';
+        $content = 'abcdefgh';
+        $config = (new Config())->set('timestamp', time());
+        $sourceConfig = clone $config;
+        $backupConfig = clone $config;
+
+        $source = new MemoryAdapter();
+        $source->write($path, $content, $sourceConfig);
+        $backup = new MemoryAdapter();
+        $backup->write($path, $content, $backupConfig);
+
+        $files = (new Compare(new Filesystem($backup), new Filesystem($source)))->compare();
+        $this->assertCount(1, $files);
+        $this->assertCount(0, $files[0]->getErrors());
+        $this->assertSame('temp1/file.txt', $files[0]->getPath());
+        $this->assertSame('file.txt', $files[0]->getFilename());
+    }
 
     /**
      * @test
      */
-    public function can_compare_directories(): void
+    public function will_compare_that_backup_file_does_not_exists(): void
     {
-        $files = $this->compare->compare();
-        $this->assertCount(5, $files);
-        foreach ($files as $file) {
-            switch ($file->getFilename()) {
-                case 'file3.txt':
-                    $this->assertSame('temp1/temp2/file3.txt', $file->getPath());
-                    $this->assertCount(2, $file->getErrors());
-                    $this->assertSame(File::SOURCE_FILE_IS_OLDER_THAN_BACUP, $file->getErrors()[0]);
-                    $this->assertSame(File::SOURCE_FILE_IS_SMALLER_THAN_BACKUP, $file->getErrors()[1]);
-                    break;
-                case 'file2.txt':
-                    $this->assertCount(2, $file->getErrors());
-                    $this->assertSame(File::SOURCE_FILE_IS_OLDER_THAN_BACUP, $file->getErrors()[0]);
-                    $this->assertSame(File::SOURCE_FILE_IS_BIGGER_THAN_BACKUP, $file->getErrors()[1]);
-                    break;
-                case 'file1.txt':
-                    $this->assertCount(1, $file->getErrors());
-                    $this->assertSame(File::SOURCE_FILE_IS_NEWER_THAN_BACKUP, $file->getErrors()[0]);
-                    break;
-                case 'matrixrates.csv':
-                    $this->assertCount(0, $file->getErrors());
-                    break;
-                case 'tablerates.csv':
-                    $this->assertCount(1, $file->getErrors());
-                    $this->assertSame(File::SOURCE_FILE_DOES_NOT_EXISTS_IN_BACKUP, $file->getErrors()[0]);
-                    break;
-            }
-        }
+        $path = 'temp1/file.txt';
+        $content = 'abcdefgh';
+        $config = (new Config())->set('timestamp', time());
+        $sourceConfig = clone $config;
+
+        $source = new MemoryAdapter();
+        $source->write($path, $content, $sourceConfig);
+        $backup = new MemoryAdapter();
+
+        $files = (new Compare(new Filesystem($backup), new Filesystem($source)))->compare();
+        $this->assertCount(1, $files);
+        $this->assertCount(1, $files[0]->getErrors());
+        $this->assertSame(File::SOURCE_FILE_DOES_NOT_EXISTS_IN_BACKUP, $files[0]->getErrors()[0]);
     }
 
-    protected function setUp(): void
+    /**
+     * @test
+     */
+    public function will_compare_backup_is_smaller_than_source_file(): void
     {
-        $backup = new Local(__DIR__.'/files/backup');
-        $backupFs = new Filesystem($backup);
+        $path = 'temp1/file.txt';
+        $content = 'abcdefgh';
+        $config = (new Config())->set('timestamp', time());
 
-        $source = new Local(__DIR__.'/files/source');
-        $sourceFs = new Filesystem($source);
+        $source = new MemoryAdapter();
+        $source->write($path, '', $config);
+        $backup = new MemoryAdapter();
+        $backup->write($path, $content, $config);
 
-        $this->compare = new Compare($backupFs, $sourceFs);
+        $files = (new Compare(new Filesystem($backup), new Filesystem($source)))->compare();
+        $this->assertCount(1, $files);
+        $this->assertCount(1, $files[0]->getErrors());
+        $this->assertSame(File::SOURCE_FILE_IS_SMALLER_THAN_BACKUP, $files[0]->getErrors()[0]);
+    }
+
+    /**
+     * @test
+     */
+    public function will_compare_backup_is_larger_than_source_file(): void
+    {
+        $path = 'temp1/file.txt';
+        $content = 'abcdefgh';
+        $config = (new Config())->set('timestamp', time());
+
+        $source = new MemoryAdapter();
+        $source->write($path, $content, $config);
+        $backup = new MemoryAdapter();
+        $backup->write($path, '', $config);
+
+        $files = (new Compare(new Filesystem($backup), new Filesystem($source)))->compare();
+        $this->assertCount(1, $files);
+        $this->assertCount(1, $files[0]->getErrors());
+        $this->assertSame(File::SOURCE_FILE_IS_LARGER_THAN_BACKUP, $files[0]->getErrors()[0]);
+    }
+
+    /**
+     * @test
+     */
+    public function will_compare_backup_file_is_older_than_source_file(): void
+    {
+        $path = 'temp1/file.txt';
+        $content = 'abcdefgh';
+        $config = (new Config())->set('timestamp', time());
+        $sourceConfig = clone $config;
+        $backupConfig = clone $config;
+
+        $source = new MemoryAdapter();
+        $source->write($path, $content, $sourceConfig);
+        $backup = new MemoryAdapter();
+        $backup->write($path, $content, $backupConfig->set('timestamp', time() + 100));
+
+        $files = (new Compare(new Filesystem($backup), new Filesystem($source)))->compare();
+        $this->assertCount(1, $files);
+        $this->assertCount(1, $files[0]->getErrors());
+        $this->assertSame(File::SOURCE_FILE_IS_OLDER_THAN_BACUP, $files[0]->getErrors()[0]);
+    }
+
+    /**
+     * @test
+     */
+    public function will_compare_backup_file_is_newer_than_source_file(): void
+    {
+        $path = 'temp1/file.txt';
+        $content = 'abcdefgh';
+        $config = (new Config())->set('timestamp', time());
+        $sourceConfig = clone $config;
+        $backupConfig = clone $config;
+
+        $source = new MemoryAdapter();
+        $source->write($path, $content, $sourceConfig->set('timestamp', time() + 100));
+        $backup = new MemoryAdapter();
+        $backup->write($path, $content, $backupConfig);
+
+        $files = (new Compare(new Filesystem($backup), new Filesystem($source)))->compare();
+        $this->assertCount(1, $files);
+        $this->assertCount(1, $files[0]->getErrors());
+        $this->assertSame(File::SOURCE_FILE_IS_NEWER_THAN_BACKUP, $files[0]->getErrors()[0]);
+    }
+
+    /**
+     * @test
+     */
+    public function will_get_multiple_errors(): void
+    {
+        $path = 'temp1/file.txt';
+        $content = 'abcdefgh';
+        $config = (new Config())->set('timestamp', time());
+        $sourceConfig = clone $config;
+        $backupConfig = clone $config;
+
+        $source = new MemoryAdapter();
+        $source->write($path, $content, $sourceConfig);
+        $backup = new MemoryAdapter();
+        $backup->write($path, '', $backupConfig->set('timestamp', time() + 100));
+
+        $files = (new Compare(new Filesystem($backup), new Filesystem($source)))->compare();
+        $this->assertCount(1, $files);
+        $this->assertCount(2, $files[0]->getErrors());
+    }
+
+    /**
+     * @test
+     */
+    public function will_compare_multiple_files_in_multiple_directories(): void
+    {
+        $source = new MemoryAdapter();
+        $source->write('temp/file1.txt', '', new Config([]));
+        $source->write('temp/temp/file2.txt', '', new Config([]));
+        $source->write('temp/temp/temp/file3.txt', '', new Config([]));
+        $source->write('temp/file4.txt', '', new Config([]));
+        $source->write('temp/file5.txt', '', new Config([]));
+
+        $backup = new MemoryAdapter();
+        $files = (new Compare(new Filesystem($backup), new Filesystem($source)))->compare();
+        $this->assertCount(5, $files);
+        foreach ($files as $file) {
+            $this->assertCount(1, $file->getErrors());
+            $this->assertSame(File::SOURCE_FILE_DOES_NOT_EXISTS_IN_BACKUP, $file->getErrors()[0]);
+        }
     }
 }
