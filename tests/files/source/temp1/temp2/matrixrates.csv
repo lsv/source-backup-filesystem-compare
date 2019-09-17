@@ -1,0 +1,13 @@
+Country,Region/State,City,"Zip/Postal Code From","Zip/Postal Code To","Order Subtotal>","Order Subtotal<=","Shipping Price","Shipping Method"
+DEU,*,*,*,,0.0000,1500.0000,500.0000,Hastelevering
+DEU,*,*,*,,1501.0000,9999999.0000,200.0000,Hastelevering
+DNK,*,*,*,,1501.0000,9999999.0000,180.0000,Hastelevering
+DNK,*,*,*,,0.0000,1500.0000,480.0000,Hastelevering
+FRA,*,*,*,,1501.0000,9999999.0000,300.0000,Hastelevering
+FRA,*,*,*,,0.0000,1500.0000,600.0000,Hastelevering
+GBR,*,*,*,,1501.0000,9999999.0000,300.0000,Hastelevering
+GBR,*,*,*,,0.0000,1500.0000,600.0000,Hastelevering
+NOR,*,*,*,,1501.0000,9999999.0000,300.0000,Hastelevering
+NOR,*,*,*,,0.0000,1500.0000,600.0000,Hastelevering
+SWE,*,*,*,,1501.0000,9999999.0000,200.0000,Hastelevering
+SWE,*,*,*,,0.0000,1500.0000,500.0000,Hastelevering
