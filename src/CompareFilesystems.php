@@ -15,6 +15,7 @@ class CompareFilesystems
      * @var FilesystemInterface
      */
     private $sourceFilesystem;
+
     /**
      * @var FilesystemInterface
      */
@@ -31,19 +32,19 @@ class CompareFilesystems
      */
     public function compare(): Generator
     {
-        $sources = $this->targetFilesystem->listContents('.', true);
+        $sources = $this->sourceFilesystem->listContents('.', true);
         foreach ($sources as $source) {
             switch ($source['type']) {
                 case 'dir':
                     break;
                 case 'file':
-                    yield $this->readFile($source);
+                    yield $this->readSourceFile($source);
                     break;
             }
         }
     }
 
-    protected function readFile(array $sourceFile): File
+    protected function readSourceFile(array $sourceFile): File
     {
         $file = (new File())
             ->setPath($sourceFile['path'])
@@ -51,8 +52,8 @@ class CompareFilesystems
             ->setSourceSize($sourceFile['size'])
             ->setSourceTimestamp($this->setTimestamp($sourceFile['timestamp']));
 
-        if ($this->sourceFilesystem->has($sourceFile['path'])) {
-            $metadata = $this->sourceFilesystem->getMetadata($sourceFile['path']);
+        if ($this->targetFilesystem->has($sourceFile['path'])) {
+            $metadata = $this->targetFilesystem->getMetadata($sourceFile['path']);
             $file
                 ->setTargetTimestamp($this->setTimestamp($metadata['timestamp']))
                 ->setTargetSize($metadata['size']);

@@ -26,11 +26,12 @@ class CompareTest extends TestCase
 
         $source = new MemoryAdapter();
         $source->write($path, $content, $sourceConfig);
-        $backup = new MemoryAdapter();
-        $backup->write($path, $content, $backupConfig);
+
+        $target = new MemoryAdapter();
+        $target->write($path, $content, $backupConfig);
 
         $files = [];
-        foreach ((new CompareFilesystems(new Filesystem($backup), new Filesystem($source)))->compare() as $file) {
+        foreach ((new CompareFilesystems(new Filesystem($source), new Filesystem($target)))->compare() as $file) {
             $files[] = $file;
         }
 
@@ -52,10 +53,10 @@ class CompareTest extends TestCase
 
         $source = new MemoryAdapter();
         $source->write($path, $content, $sourceConfig);
-        $backup = new MemoryAdapter();
+        $target = new MemoryAdapter();
 
         $files = [];
-        foreach ((new CompareFilesystems(new Filesystem($backup), new Filesystem($source)))->compare() as $file) {
+        foreach ((new CompareFilesystems(new Filesystem($source), new Filesystem($target)))->compare() as $file) {
             $files[] = $file;
         }
 
@@ -75,11 +76,11 @@ class CompareTest extends TestCase
 
         $source = new MemoryAdapter();
         $source->write($path, '', $config);
-        $backup = new MemoryAdapter();
-        $backup->write($path, $content, $config);
+        $target = new MemoryAdapter();
+        $target->write($path, $content, $config);
 
         $files = [];
-        foreach ((new CompareFilesystems(new Filesystem($backup), new Filesystem($source)))->compare() as $file) {
+        foreach ((new CompareFilesystems(new Filesystem($source), new Filesystem($target)))->compare() as $file) {
             $files[] = $file;
         }
 
@@ -99,11 +100,11 @@ class CompareTest extends TestCase
 
         $source = new MemoryAdapter();
         $source->write($path, $content, $config);
-        $backup = new MemoryAdapter();
-        $backup->write($path, '', $config);
+        $target = new MemoryAdapter();
+        $target->write($path, 'x', $config);
 
         $files = [];
-        foreach ((new CompareFilesystems(new Filesystem($backup), new Filesystem($source)))->compare() as $file) {
+        foreach ((new CompareFilesystems(new Filesystem($source), new Filesystem($target)))->compare() as $file) {
             $files[] = $file;
         }
 
@@ -125,11 +126,11 @@ class CompareTest extends TestCase
 
         $source = new MemoryAdapter();
         $source->write($path, $content, $sourceConfig);
-        $backup = new MemoryAdapter();
-        $backup->write($path, $content, $backupConfig->set('timestamp', time() + 100));
+        $target = new MemoryAdapter();
+        $target->write($path, $content, $backupConfig->set('timestamp', time() + 100));
 
         $files = [];
-        foreach ((new CompareFilesystems(new Filesystem($backup), new Filesystem($source)))->compare() as $file) {
+        foreach ((new CompareFilesystems(new Filesystem($source), new Filesystem($target)))->compare() as $file) {
             $files[] = $file;
         }
 
@@ -151,11 +152,11 @@ class CompareTest extends TestCase
 
         $source = new MemoryAdapter();
         $source->write($path, $content, $sourceConfig->set('timestamp', time() + 100));
-        $backup = new MemoryAdapter();
-        $backup->write($path, $content, $backupConfig);
+        $target = new MemoryAdapter();
+        $target->write($path, $content, $backupConfig);
 
         $files = [];
-        foreach ((new CompareFilesystems(new Filesystem($backup), new Filesystem($source)))->compare() as $file) {
+        foreach ((new CompareFilesystems(new Filesystem($source), new Filesystem($target)))->compare() as $file) {
             $files[] = $file;
         }
 
@@ -176,12 +177,12 @@ class CompareTest extends TestCase
         $backupConfig = clone $config;
 
         $source = new MemoryAdapter();
-        $source->write($path, $content, $sourceConfig);
-        $backup = new MemoryAdapter();
-        $backup->write($path, '', $backupConfig->set('timestamp', time() + 100));
+        $source->write($path, '', $backupConfig->set('timestamp', time() + 100));
+        $target = new MemoryAdapter();
+        $target->write($path, $content, $sourceConfig);
 
         $files = [];
-        foreach ((new CompareFilesystems(new Filesystem($backup), new Filesystem($source)))->compare() as $file) {
+        foreach ((new CompareFilesystems(new Filesystem($source), new Filesystem($target)))->compare() as $file) {
             $files[] = $file;
         }
 
@@ -201,10 +202,10 @@ class CompareTest extends TestCase
         $source->write('temp/file4.txt', '', new Config([]));
         $source->write('temp/file5.txt', '', new Config([]));
 
-        $backup = new MemoryAdapter();
+        $target = new MemoryAdapter();
 
         $files = [];
-        foreach ((new CompareFilesystems(new Filesystem($backup), new Filesystem($source)))->compare() as $file) {
+        foreach ((new CompareFilesystems(new Filesystem($source), new Filesystem($target)))->compare() as $file) {
             $files[] = $file;
         }
 
