@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Lsv\BackupCompareFilesystems;
 
 use DateTime;
+use Generator;
 use League\Flysystem\FilesystemInterface;
 use Lsv\BackupCompareFilesystems\Model\File;
 
-class Compare
+class CompareFilesystems
 {
     /**
      * @var FilesystemInterface
@@ -26,25 +27,17 @@ class Compare
     }
 
     /**
-     * @return File[]
+     * @return File[]|Generator
      */
-    public function compare(): array
+    public function compare(): Generator
     {
-        $files = [];
-        $this->readDir('.', $files);
-
-        return $files;
-    }
-
-    protected function readDir($path, array &$files): void
-    {
-        $sources = $this->sourceFilesystem->listContents($path, true);
+        $sources = $this->sourceFilesystem->listContents('.', true);
         foreach ($sources as $source) {
             switch ($source['type']) {
                 case 'dir':
                     break;
                 case 'file':
-                    $files[] = $this->readFile($source);
+                    yield $this->readFile($source);
                     break;
             }
         }

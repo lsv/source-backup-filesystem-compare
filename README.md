@@ -15,16 +15,15 @@ First we need to create a source filesystem and a backup filesystem.
 We are using [league/flysystem](https://flysystem.thephpleague.com/docs/) so we can use many different storages  
 
 ```php
-use League\Flysystem\Filesystem;use Lsv\BackupCompareFilesystems\Compare;
+use League\Flysystem\Filesystem;
+use Lsv\BackupCompareFilesystems\CompareFilesystems;
 
 // For adapters see the league/flysystem docs
 $source = new Filesystem($sourceAdapter);
 $backup = new Filesystem($backupAdapter);
 
-$files = (new Compare($backup, $source))->compare();
-// Now $files are a array of Lsv\Lsv\BackupCompareFilesystems\Model
-
-foreach ($files as $file) {
+foreach ((new CompareFilesystems($backup, $source))->compare() as $file) {
+    // Now $file are a Lsv\Lsv\BackupCompareFilesystems\Model object
     if ($errors = $file->getErrors()) {
         foreach ($errors as $error) {
             echo $error; // $error is a integer which corresponts to the following constants

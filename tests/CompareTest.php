@@ -7,7 +7,7 @@ namespace Lsv\BackupCompareFilesystemsTests;
 use League\Flysystem\Config;
 use League\Flysystem\Filesystem;
 use League\Flysystem\Memory\MemoryAdapter;
-use Lsv\BackupCompareFilesystems\Compare;
+use Lsv\BackupCompareFilesystems\CompareFilesystems;
 use Lsv\BackupCompareFilesystems\Model\File;
 use PHPUnit\Framework\TestCase;
 
@@ -29,7 +29,11 @@ class CompareTest extends TestCase
         $backup = new MemoryAdapter();
         $backup->write($path, $content, $backupConfig);
 
-        $files = (new Compare(new Filesystem($backup), new Filesystem($source)))->compare();
+        $files = [];
+        foreach ((new CompareFilesystems(new Filesystem($backup), new Filesystem($source)))->compare() as $file) {
+            $files[] = $file;
+        }
+
         $this->assertCount(1, $files);
         $this->assertCount(0, $files[0]->getErrors());
         $this->assertSame('temp1/file.txt', $files[0]->getPath());
@@ -50,7 +54,11 @@ class CompareTest extends TestCase
         $source->write($path, $content, $sourceConfig);
         $backup = new MemoryAdapter();
 
-        $files = (new Compare(new Filesystem($backup), new Filesystem($source)))->compare();
+        $files = [];
+        foreach ((new CompareFilesystems(new Filesystem($backup), new Filesystem($source)))->compare() as $file) {
+            $files[] = $file;
+        }
+
         $this->assertCount(1, $files);
         $this->assertCount(1, $files[0]->getErrors());
         $this->assertSame(File::SOURCE_FILE_DOES_NOT_EXISTS_IN_BACKUP, $files[0]->getErrors()[0]);
@@ -70,7 +78,11 @@ class CompareTest extends TestCase
         $backup = new MemoryAdapter();
         $backup->write($path, $content, $config);
 
-        $files = (new Compare(new Filesystem($backup), new Filesystem($source)))->compare();
+        $files = [];
+        foreach ((new CompareFilesystems(new Filesystem($backup), new Filesystem($source)))->compare() as $file) {
+            $files[] = $file;
+        }
+
         $this->assertCount(1, $files);
         $this->assertCount(1, $files[0]->getErrors());
         $this->assertSame(File::SOURCE_FILE_IS_SMALLER_THAN_BACKUP, $files[0]->getErrors()[0]);
@@ -90,7 +102,11 @@ class CompareTest extends TestCase
         $backup = new MemoryAdapter();
         $backup->write($path, '', $config);
 
-        $files = (new Compare(new Filesystem($backup), new Filesystem($source)))->compare();
+        $files = [];
+        foreach ((new CompareFilesystems(new Filesystem($backup), new Filesystem($source)))->compare() as $file) {
+            $files[] = $file;
+        }
+
         $this->assertCount(1, $files);
         $this->assertCount(1, $files[0]->getErrors());
         $this->assertSame(File::SOURCE_FILE_IS_LARGER_THAN_BACKUP, $files[0]->getErrors()[0]);
@@ -112,7 +128,11 @@ class CompareTest extends TestCase
         $backup = new MemoryAdapter();
         $backup->write($path, $content, $backupConfig->set('timestamp', time() + 100));
 
-        $files = (new Compare(new Filesystem($backup), new Filesystem($source)))->compare();
+        $files = [];
+        foreach ((new CompareFilesystems(new Filesystem($backup), new Filesystem($source)))->compare() as $file) {
+            $files[] = $file;
+        }
+
         $this->assertCount(1, $files);
         $this->assertCount(1, $files[0]->getErrors());
         $this->assertSame(File::SOURCE_FILE_IS_OLDER_THAN_BACUP, $files[0]->getErrors()[0]);
@@ -134,7 +154,11 @@ class CompareTest extends TestCase
         $backup = new MemoryAdapter();
         $backup->write($path, $content, $backupConfig);
 
-        $files = (new Compare(new Filesystem($backup), new Filesystem($source)))->compare();
+        $files = [];
+        foreach ((new CompareFilesystems(new Filesystem($backup), new Filesystem($source)))->compare() as $file) {
+            $files[] = $file;
+        }
+
         $this->assertCount(1, $files);
         $this->assertCount(1, $files[0]->getErrors());
         $this->assertSame(File::SOURCE_FILE_IS_NEWER_THAN_BACKUP, $files[0]->getErrors()[0]);
@@ -156,7 +180,11 @@ class CompareTest extends TestCase
         $backup = new MemoryAdapter();
         $backup->write($path, '', $backupConfig->set('timestamp', time() + 100));
 
-        $files = (new Compare(new Filesystem($backup), new Filesystem($source)))->compare();
+        $files = [];
+        foreach ((new CompareFilesystems(new Filesystem($backup), new Filesystem($source)))->compare() as $file) {
+            $files[] = $file;
+        }
+
         $this->assertCount(1, $files);
         $this->assertCount(2, $files[0]->getErrors());
     }
@@ -174,7 +202,12 @@ class CompareTest extends TestCase
         $source->write('temp/file5.txt', '', new Config([]));
 
         $backup = new MemoryAdapter();
-        $files = (new Compare(new Filesystem($backup), new Filesystem($source)))->compare();
+
+        $files = [];
+        foreach ((new CompareFilesystems(new Filesystem($backup), new Filesystem($source)))->compare() as $file) {
+            $files[] = $file;
+        }
+
         $this->assertCount(5, $files);
         foreach ($files as $file) {
             $this->assertCount(1, $file->getErrors());
