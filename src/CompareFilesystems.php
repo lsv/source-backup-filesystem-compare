@@ -14,16 +14,16 @@ class CompareFilesystems
     /**
      * @var FilesystemInterface
      */
-    private $backupFilesystem;
+    private $sourceFilesystem;
     /**
      * @var FilesystemInterface
      */
-    private $sourceFilesystem;
+    private $targetFilesystem;
 
-    public function __construct(FilesystemInterface $backupFilesystem, FilesystemInterface $sourceFilesystem)
+    public function __construct(FilesystemInterface $sourceFilesystem, FilesystemInterface $targetFilesystem)
     {
-        $this->backupFilesystem = $backupFilesystem;
         $this->sourceFilesystem = $sourceFilesystem;
+        $this->targetFilesystem = $targetFilesystem;
     }
 
     /**
@@ -31,7 +31,7 @@ class CompareFilesystems
      */
     public function compare(): Generator
     {
-        $sources = $this->sourceFilesystem->listContents('.', true);
+        $sources = $this->targetFilesystem->listContents('.', true);
         foreach ($sources as $source) {
             switch ($source['type']) {
                 case 'dir':
@@ -51,11 +51,11 @@ class CompareFilesystems
             ->setSourceSize($sourceFile['size'])
             ->setSourceTimestamp($this->setTimestamp($sourceFile['timestamp']));
 
-        if ($this->backupFilesystem->has($sourceFile['path'])) {
-            $metadata = $this->backupFilesystem->getMetadata($sourceFile['path']);
+        if ($this->sourceFilesystem->has($sourceFile['path'])) {
+            $metadata = $this->sourceFilesystem->getMetadata($sourceFile['path']);
             $file
-                ->setBackupTimestamp($this->setTimestamp($metadata['timestamp']))
-                ->setBackupSize($metadata['size']);
+                ->setTargetTimestamp($this->setTimestamp($metadata['timestamp']))
+                ->setTargetSize($metadata['size']);
         }
 
         return $file;

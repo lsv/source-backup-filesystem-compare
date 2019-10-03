@@ -13,6 +13,7 @@ class File
     // Sizes
     public const SOURCE_FILE_IS_SMALLER_THAN_BACKUP = 2;
     public const SOURCE_FILE_IS_LARGER_THAN_BACKUP = 3;
+
     // Timestamps
     public const SOURCE_FILE_IS_OLDER_THAN_BACUP = 4;
     public const SOURCE_FILE_IS_NEWER_THAN_BACKUP = 5;
@@ -30,7 +31,7 @@ class File
     /**
      * @var DateTime|null
      */
-    private $backupTimestamp;
+    private $targetTimestamp;
 
     /**
      * @var DateTime
@@ -40,7 +41,7 @@ class File
     /**
      * @var int|null
      */
-    private $backupSize;
+    private $targetSize;
 
     /**
      * @var int
@@ -71,14 +72,14 @@ class File
         return $this;
     }
 
-    public function getBackupTimestamp(): ?DateTime
+    public function getTargetTimestamp(): ?DateTime
     {
-        return $this->backupTimestamp;
+        return $this->targetTimestamp;
     }
 
-    public function setBackupTimestamp(?DateTime $backupTimestamp): self
+    public function setTargetTimestamp(?DateTime $targetTimestamp): self
     {
-        $this->backupTimestamp = $backupTimestamp;
+        $this->targetTimestamp = $targetTimestamp;
 
         return $this;
     }
@@ -95,14 +96,16 @@ class File
         return $this;
     }
 
-    public function getBackupSize(): ?int
+    public function getTargetSize(): ?int
     {
-        return $this->backupSize;
+        return $this->targetSize;
     }
 
-    public function setBackupSize(?int $backupSize): self
+    public function setTargetSize($targetSize): self
     {
-        $this->backupSize = $backupSize;
+        if ($targetSize) {
+            $this->targetSize = (int) $targetSize;
+        }
 
         return $this;
     }
@@ -112,9 +115,9 @@ class File
         return $this->sourceSize;
     }
 
-    public function setSourceSize(int $sourceSize): self
+    public function setSourceSize($sourceSize): self
     {
-        $this->sourceSize = $sourceSize;
+        $this->sourceSize = (int) $sourceSize;
 
         return $this;
     }
@@ -122,25 +125,25 @@ class File
     public function getErrors(): array
     {
         $errors = [];
-        if (null === $this->getBackupTimestamp() || null === $this->getBackupSize()) {
+        if (null === $this->getTargetTimestamp() || null === $this->getTargetSize()) {
             $errors[] = self::SOURCE_FILE_DOES_NOT_EXISTS_IN_BACKUP;
 
             return $errors;
         }
 
-        if ($this->getBackupTimestamp() < $this->getSourceTimestamp()) {
+        if ($this->getTargetTimestamp() < $this->getSourceTimestamp()) {
             $errors[] = self::SOURCE_FILE_IS_NEWER_THAN_BACKUP;
         }
 
-        if ($this->getBackupTimestamp() > $this->getSourceTimestamp()) {
+        if ($this->getTargetTimestamp() > $this->getSourceTimestamp()) {
             $errors[] = self::SOURCE_FILE_IS_OLDER_THAN_BACUP;
         }
 
-        if ($this->getBackupSize() < $this->getSourceSize()) {
+        if ($this->getTargetSize() < $this->getSourceSize()) {
             $errors[] = self::SOURCE_FILE_IS_LARGER_THAN_BACKUP;
         }
 
-        if ($this->getBackupSize() > $this->getSourceSize()) {
+        if ($this->getTargetSize() > $this->getSourceSize()) {
             $errors[] = self::SOURCE_FILE_IS_SMALLER_THAN_BACKUP;
         }
 
